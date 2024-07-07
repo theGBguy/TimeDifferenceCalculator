@@ -1,5 +1,7 @@
 This is a simple KMP project targeting Android, iOS, Web, Desktop which calculates time difference.
 
+<img src="https://github.com/theGBguy/TimeDifferenceCalculator/assets/25641763/183318e2-5248-4722-aa38-a06755f247a1" width="100%"></img>
+
 * `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
   It contains several subfolders:
   - `commonMain` is for code that’s common for all targets.
