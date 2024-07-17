@@ -1,4 +1,4 @@
-name: Desktop MacOS Release
+name: Desktop Multi-Platform Release
 on: [workflow_dispatch]
   # push:
   #   branches:
@@ -6,7 +6,11 @@ on: [workflow_dispatch]
 
 jobs:
   deploy:
-    runs-on: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
     timeout-minutes: 40
     permissions:
       contents: write
@@ -19,21 +23,36 @@ jobs:
       - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-home-cache-cleanup: true
-          cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}                
+          cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
 
       - name: Create path variables
         id: path_variables
         run: |
           tag=$(git describe --tags --abbrev=0 --match "*-desktop")
           version=$(echo "$tag" | sed 's/-desktop$//')
-          name="io.github.thegbguy.timedifferencecalculator-${version}.dmg"
-          path="composeApp/build/release/main-release/dmg/${name}"
+          if [[ "${{ matrix.os }}" == 'macos-latest' ]]; then
+            name="io.github.thegbguy.timedifferencecalculator-${version}.dmg"
+            path="composeApp/build/release/main-release/dmg/${name}"
+          elif [[ "${{ matrix.os }}" == 'windows-latest' ]]; then
+            name="io.github.thegbguy.timedifferencecalculator-${version}.exe"
+            path="composeApp/build/release/main-release/exe/${name}"
+          else
+            name="io.github.thegbguy.timedifferencecalculator-${version}.deb"
+            path="composeApp/build/release/main-release/deb/${name}"
+          fi
           echo "TAG=$tag" >> $GITHUB_ENV
           echo "VERSION=$version" >> $GITHUB_ENV
-          echo "RELEASE_PATH=$path" >> $GITHUB_ENV          
+          echo "RELEASE_PATH=$path" >> $GITHUB_ENV
 
-      - name: Create DMG
-        run: ./gradlew packageReleaseDmg
+      - name: Build Package
+        run: |
+          if [[ "${{ matrix.os }}" == 'macos-latest' ]]; then
+            ./gradlew packageReleaseDmg
+          elif [[ "${{ matrix.os }}" == 'windows-latest' ]]; then
+            ./gradlew packageReleaseExe
+          else
+            ./gradlew packageReleaseDeb
+          fi
 
       - name: Upload reports
         if: failure()
@@ -41,7 +60,7 @@ jobs:
         with:
           name: reports
           path: |
-            **/build/compose/logs/*  
+            **/build/compose/logs/*
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
@@ -51,4 +70,4 @@ jobs:
           tag: ${{ env.TAG }}
           overwrite: true
           draft: true
-          body: "Release ${{ env.VERSION }}"
+          body: "Release ${{ env.VERSION }} for ${{ matrix.os }}"
