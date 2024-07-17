@@ -25,7 +25,8 @@ jobs:
           gradle-home-cache-cleanup: true
           cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
 
-      - name: Create path variables
+      - name: Set Path Variables for macOS and Linux
+        if: runner.os != 'Windows'
         id: path_variables
         run: |
           tag=$(git describe --tags --abbrev=0 --match "*-desktop")
@@ -33,9 +34,6 @@ jobs:
           if [[ "${{ matrix.os }}" == 'macos-latest' ]]; then
             name="io.github.thegbguy.timedifferencecalculator-${version}.dmg"
             path="composeApp/build/release/main-release/dmg/${name}"
-          elif [[ "${{ matrix.os }}" == 'windows-latest' ]]; then
-            name="io.github.thegbguy.timedifferencecalculator-${version}.exe"
-            path="composeApp/build/release/main-release/exe/${name}"
           else
             name="io.github.thegbguy.timedifferencecalculator-${version}.deb"
             path="composeApp/build/release/main-release/deb/${name}"
@@ -44,15 +42,29 @@ jobs:
           echo "VERSION=$version" >> $GITHUB_ENV
           echo "RELEASE_PATH=$path" >> $GITHUB_ENV
 
-      - name: Build Package
+      - name: Set Path Variables for Windows
+        if: runner.os == 'Windows'
+        id: path_variables
         run: |
-          if [[ "${{ matrix.os }}" == 'macos-latest' ]]; then
-            ./gradlew packageReleaseDmg
-          elif [[ "${{ matrix.os }}" == 'windows-latest' ]]; then
-            ./gradlew packageReleaseExe
-          else
-            ./gradlew packageReleaseDeb
-          fi
+          $tag = $(git describe --tags --abbrev=0 --match "*-desktop")
+          $version = $tag -replace '-desktop$', ''
+          $name = "io.github.thegbguy.timedifferencecalculator-${version}.exe"
+          $path = "composeApp/build/release/main-release/exe/${name}"
+          echo "TAG=$tag" >> $env:GITHUB_ENV
+          echo "VERSION=$version" >> $env:GITHUB_ENV
+          echo "RELEASE_PATH=$path" >> $env:GITHUB_ENV
+
+      - name: Build Package for macOS
+        if: runner.os == 'macOS'
+        run: ./gradlew packageReleaseDmg
+
+      - name: Build Package for Windows
+        if: runner.os == 'Windows'
+        run: ./gradlew packageReleaseExe
+
+      - name: Build Package for Linux
+        if: runner.os == 'Linux'
+        run: ./gradlew packageReleaseDeb
 
       - name: Upload reports
         if: failure()
