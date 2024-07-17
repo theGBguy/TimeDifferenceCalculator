@@ -6,8 +6,7 @@ on: [workflow_dispatch]
 
 jobs:
   deploy:
-    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: macos-latest
+    runs-on: [windows-latest, ubuntu-latest, macos-latest]
     timeout-minutes: 40
     permissions:
       contents: write
@@ -17,30 +16,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      # - name: set up JDK
-      #   uses: actions/setup-java@v4
-      #   with:
-      #     distribution: 'zulu'
-      #     java-version: 18
-
       - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-home-cache-cleanup: true
           cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}                
-
-      # - name: Cache KMP tooling
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: |
-      #                   ~/.konan
-      #     key: ${{ runner.os }}-v1-${{ hashFiles('*.versions.toml') }}
-
-      # Developer ID Application
-      # - name: Import signing certificate
-      #   uses: apple-actions/import-codesign-certs@v2
-      #   with:
-      #     p12-file-base64: ${{ secrets.SIGNING_CERTIFICATE_P12_DATA_MACOS }}
-      #     p12-password: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD_MACOS }}
 
       - name: Create path variables
         id: path_variables
@@ -63,16 +42,6 @@ jobs:
           name: reports
           path: |
             **/build/compose/logs/*  
-
-      # - name: Notarization
-      #   run: |
-      #     xcrun notarytool submit $RELEASE_PATH --apple-id $APPLE_ID_NOTARIZATION --password $NOTARIZATION_PWD --team-id $APPSTORE_TEAM_ID --wait
-      #     xcrun stapler staple $RELEASE_PATH          
-      #   env:
-      #     APPLE_ID_NOTARIZATION: ${{ secrets.APPLE_ID_NOTARIZATION }}
-      #     APPSTORE_TEAM_ID: ${{ secrets.APPSTORE_TEAM_ID }}
-      #     NOTARIZATION_PWD: ${{ secrets.NOTARIZATION_PWD }}
-      #     RELEASE_PATH: ${{ env.RELEASE_PATH }}
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
