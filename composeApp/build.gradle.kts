@@ -70,7 +70,10 @@ kotlin {
             api(libs.calf.ui)
         }
         desktopMain.dependencies {
-            implementation(compose.desktop.currentOs)
+            implementation(compose.desktop.currentOs) {
+                exclude("org.jetbrains.compose.material")
+            }
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.0")
         }
         wasmJsMain.dependencies {
 //            implementation(npm("@js-joda/timezone", "2.3.0"))
@@ -123,6 +126,12 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "io.github.thegbguy.timedifferencecalculator"
             packageVersion = "1.0.0"
+            outputBaseDir.set(layout.buildDirectory.asFile.get().resolve("release"))
+        }
+
+        buildTypes.release.proguard {
+            version.set("7.5.0")
+            configurationFiles.from("proguard.pro")
         }
     }
 }
