@@ -40,7 +40,7 @@ jobs:
             name="io.github.thegbguy.timedifferencecalculator-${version}.dmg"
             path="composeApp/build/release/main-release/dmg/${name}"
           else
-            name="io.github.thegbguy.timedifferencecalculator-${version}.deb"
+            name="io.github.thegbguy.timedifferencecalculator_${version}-1_amd64.deb"
             path="composeApp/build/release/main-release/deb/${name}"
           fi
           echo "TAG=$tag" >> $GITHUB_ENV
@@ -64,7 +64,7 @@ jobs:
 
       - name: Build Package for Windows
         if: runner.os == 'Windows'
-        run: ./gradlew packageReleaseExe
+        run: ./gradlew packageReleaseMsi
 
       - name: Build Package for Linux
         if: runner.os == 'Linux'
