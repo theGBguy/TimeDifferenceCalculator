@@ -52,8 +52,8 @@ jobs:
         run: |
           $tag = $(git describe --tags --abbrev=0 --match "*-desktop")
           $version = $tag -replace '-desktop$', ''
-          $name = "io.github.thegbguy.timedifferencecalculator-${version}.exe"
-          $path = "composeApp/build/release/main-release/exe/${name}"
+          $name = "io.github.thegbguy.timedifferencecalculator-${version}.msi"
+          $path = "composeApp/build/release/main-release/msi/${name}"
           echo "TAG=$tag" >> $env:GITHUB_ENV
           echo "VERSION=$version" >> $env:GITHUB_ENV
           echo "RELEASE_PATH=$path" >> $env:GITHUB_ENV
