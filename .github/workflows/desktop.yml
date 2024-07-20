@@ -27,7 +27,6 @@ jobs:
 
       - name: Set Path Variables for macOS and Linux
         if: runner.os != 'Windows'
-        id: path_variables
         run: |
           tag=$(git describe --tags --abbrev=0 --match "*-desktop")
           version=$(echo "$tag" | sed 's/-desktop$//')
@@ -44,7 +43,6 @@ jobs:
 
       - name: Set Path Variables for Windows
         if: runner.os == 'Windows'
-        id: path_variables
         run: |
           $tag = $(git describe --tags --abbrev=0 --match "*-desktop")
           $version = $tag -replace '-desktop$', ''
@@ -74,7 +72,19 @@ jobs:
           path: |
             **/build/compose/logs/*
 
-      - name: Upload binaries to release
+      - name: Upload binaries to release for macOS and Linux
+        if: runner.os != 'Windows'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ env.RELEASE_PATH }}
+          tag: ${{ env.TAG }}
+          overwrite: true
+          draft: true
+          body: "Release ${{ env.VERSION }} for ${{ matrix.os }}"
+
+      - name: Upload binaries to release for Windows
+        if: runner.os == 'Windows'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
